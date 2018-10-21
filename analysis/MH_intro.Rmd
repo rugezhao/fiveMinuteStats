@@ -113,7 +113,7 @@ for(i in 2:10000){
 
 Having run this code we can plot the locations visited by the Markov chain $x$ (sometimes called a trace plot).
 ```{r}
-plot(x,main="values of x visited by the MH algorithm")
+plot(x,main="values of x visited by the MH algorithm",type = "l")
 ```
 
 Remember that we designed this algorithm to sample from an exponential distribution. This means that (provided we ran the algorithm for long enough!) the histogram of $x$ should look like an exponential distribution.
@@ -121,7 +121,7 @@ Here we check this:
 ```{r}
 hist(x,xlim=c(0,10),probability = TRUE, main="Histogram of values of x visited by MH algorithm")
 xx = seq(0,10,length=100)
-lines(xx,target(xx),col="red")
+lines(xx,target(xx),col="red") # true exp
 ```
 So we see that, indeed, the histogram
 of the values in $x$ indeed provides a close fit

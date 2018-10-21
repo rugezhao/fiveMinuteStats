@@ -73,7 +73,7 @@ for(i in 2:1000){
 
 Note that x is a realization of a Markov Chain. We can make a few plots of x:
 ```{r}
-plot(x) 
+plot(x,type="l") 
 hist(x)
 ```
 
@@ -129,18 +129,83 @@ hist(z3,breaks=seq(0,maxz,length=20))
 Use the function `easyMCMC` to explore the following:
 
   a) how do different starting values affect the MCMC scheme?  
+  
+```{r}
+set.seed(123)
+z1=easyMCMC(1000,3,1)
+z2=easyMCMC(1000,10,1)
+z3=easyMCMC(1000,50,1)
+
+plot(z1,type="l")
+lines(z2,col=2)
+lines(z3,col=3)
+
+
+par(mfcol=c(3,1)) #rather odd command tells R to put 3 graphs on a single page
+maxz=max(c(z1,z2,z3))
+hist(z1,breaks=seq(0,maxz,length=20))
+hist(z2,breaks=seq(0,maxz,length=20))
+hist(z3,breaks=seq(0,maxz,length=20))
+```
   b) what is the effect of having a bigger/smaller proposal standard deviation?
+```{r}
+set.seed(123)
+z1=easyMCMC(1000,3,0.01) # step is too small, stuck local
+z2=easyMCMC(1000,3,1) # just right
+z3=easyMCMC(1000,3,100) # step is too large, and mostly rejected
+
+plot(z3,type="l")
+lines(z2,col=2)
+lines(z1,col=3)
+
+
+par(mfcol=c(3,1)) #rather odd command tells R to put 3 graphs on a single page
+maxz=max(c(z1,z2,z3))
+hist(z1,breaks=seq(0,maxz,length=20))
+hist(z2,breaks=seq(0,maxz,length=20))
+hist(z3,breaks=seq(0,maxz,length=20))
+```
+  
   c) try changing the target function to the following
+
 
 ```{r}
 target = function(x){
-  
-  return((x>0 & x <1) + (x>2 & x<3))
+  # added a 1e-10 for numerical stability
+  return((x>0 & x <1) + (x>2 & x<3)+1e-10) 
 }
+
+
 ```
 
+
 What does this target look like?
+```{r}
+x=seq(-10,10,0.1)
+y=target(x)
+plot(x,y,type="l")
+# target has two modes
+```
+
 What happens if the proposal sd is too small here? (try e.g. 1 and 0.1)
+```{r}
+set.seed(123)
+z1=easyMCMC(1000,3,0.1) # step is too small, stuck local based on starting point
+z2=easyMCMC(1000,3,1) # just right
+z3=easyMCMC(1000,1,0.1) # step is too small, stuck local based on starting point
+
+plot(z2,type="l")
+lines(z1,col=2)
+lines(z3,col=3)
+
+
+par(mfcol=c(3,1)) #rather odd command tells R to put 3 graphs on a single page
+maxz=max(c(z1,z2,z3))
+hist(z1,breaks=seq(0,maxz,length=20))
+hist(z2,breaks=seq(0,maxz,length=20))
+hist(z3,breaks=seq(0,maxz,length=20))
+```
+
 
 # Example 2: Estimating an allele frequency
 
@@ -197,6 +262,7 @@ psampler = function(nAA, nAa, naa, niter, pstartval, pproposalsd){
 Running this sample for $n_{AA}$ = 50, $n_{Aa}$ = 21, $n_{aa}$=29.
 ```{r}
 z=psampler(50,21,29,10000,0.5,0.01)
+ 
 ```
 
 
@@ -216,7 +282,9 @@ You might also like to discard the first 5000 z's as "burnin".
 Here's one way in R to select only the last 5000 z's
 
 ```{r}
-hist(z[5001:10000])
+x=seq(0,1,length=1000)
+hist(z[5001:10000],prob=T)
+lines(x,dbeta(x,122, 80))  # overlays beta density on histogram
 ```
 
 
@@ -224,6 +292,17 @@ hist(z[5001:10000])
 
 Investigate how the starting point and proposal standard deviation affect the convergence of the algorithm. 
 
+```{r}
+z=psampler(nAA = 50,nAa = 21,naa=29,niter=10000,pstartval=0.5,pproposalsd=0.1)
+x=seq(0,1,length=1000)
+hist(z,prob=T)
+lines(x,dbeta(x,122, 80))  # overlays beta density on histogram
+ 
+
+z=psampler(nAA = 50,nAa = 21,naa=29,niter=10000,pstartval=0.5,pproposalsd=0.001) # too small, stuck local
+hist(z,prob=T)
+lines(x,dbeta(x,122, 80))  # overlays beta density on histogram
+```
 
 
 # Example 3: Estimating an allele frequency and inbreeding coefficient
